@@ -70,26 +70,23 @@
       right: 20px;
       width: 80px;
       height: 50px;
-      background: rgba(255, 255, 255, 0.9);
-      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
       overflow: hidden;
       transition: all 0.3s ease;
     }
     
     .logo-container:hover {
       transform: translateY(-3px);
-      box-shadow: 0 6px 15px rgba(0,0,0,0.25);
     }
     
     .logo {
-      width: 90%;
+      width: 100%;
       height: auto;
-      max-height: 40px;
+      max-height: 50px;
       object-fit: contain;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
     }
     
     .avatar-container {
@@ -99,8 +96,8 @@
     }
     
     .avatar {
-      width: 140px;
-      height: 140px;
+      width: 160px;
+      height: 160px;
       border-radius: 50%;
       object-fit: cover;
       border: 5px solid white;
@@ -116,8 +113,8 @@
     
     .avatar-bg {
       position: absolute;
-      width: 150px;
-      height: 150px;
+      width: 170px;
+      height: 170px;
       border-radius: 50%;
       background: rgba(255,255,255,0.2);
       top: -5px;
@@ -160,7 +157,7 @@
     
     .card-body {
       padding: 0 25px 25px;
-      margin-top: -70px;
+      margin-top: -80px;
       position: relative;
       z-index: 3;
     }
@@ -399,13 +396,13 @@
       }
       
       .avatar {
-        width: 120px;
-        height: 120px;
+        width: 140px;
+        height: 140px;
       }
       
       .avatar-bg {
-        width: 130px;
-        height: 130px;
+        width: 150px;
+        height: 150px;
       }
       
       .logo-container {
@@ -456,7 +453,7 @@
           </div>
           <div class="info-content">
             <div class="info-label">بريد إلكتروني / Email</div>
-            <div class="info-value" id="email">hiderrr2@yahoo.co.uk</div>
+            <div class="info-value" id="email">Hayder@alyafour.com</div>
           </div>
         </div>
         
@@ -476,7 +473,7 @@
           </div>
           <div class="info-content">
             <div class="info-label">موقع / Location</div>
-            <div class="info-value">أبو ظبي - الإمارات / Abu Dhabi - UAE</div>
+            <div class="info-value">OLD Airport Road - Al Mushrif - W24 01 - Abu Dhabi</div>
           </div>
         </div>
       </div>
@@ -490,12 +487,15 @@
           <i class="fab fa-whatsapp"></i>
           واتساب / WhatsApp
         </a>
-        <a class="button" href="mailto:hiderrr2@yahoo.co.uk">
+        <a class="button" href="mailto:Hayder@alyafour.com">
           <i class="fas fa-envelope"></i>
           بريد / Email
         </a>
-        <a class="button secondary" href="data:text/vcard;charset=utf-8,
-BEGIN:VCARD%0AVERSION:3.0%0AFN:Haider Al-Shammari%0ATITLE:CEO%0AORG:Al Yafour General Contracting and Transport%0ATEL:+971507528590%0AEMAIL:hiderrr2@yahoo.co.uk%0AEND:VCARD">
+        <a class="button secondary" href="https://maps.app.goo.gl/RX9wgSC5w6EuJRmX8">
+          <i class="fas fa-map-marker-alt"></i>
+          عرض الخريطة / View Map
+        </a>
+        <a class="button secondary" id="vcardButton" href="#">
           <i class="fas fa-address-card"></i>
           حفظ جهة اتصال / Save Contact
         </a>
@@ -526,7 +526,7 @@ BEGIN:VCARD%0AVERSION:3.0%0AFN:Haider Al-Shammari%0ATITLE:CEO%0AORG:Al Yafour Ge
     const translations = {
       name: {
         ar: 'حيدر الشمري',
-        en: 'Haider Al-Shammari'
+        en: 'Hayder al-Shammeriy'
       },
       title: {
         ar: 'المدير التنفيذي',
@@ -541,12 +541,16 @@ BEGIN:VCARD%0AVERSION:3.0%0AFN:Haider Al-Shammari%0ATITLE:CEO%0AORG:Al Yafour Ge
         en: '+971 50 752 8590'
       },
       email: {
-        ar: 'hiderrr2@yahoo.co.uk',
-        en: 'hiderrr2@yahoo.co.uk'
+        ar: 'Hayder@alyafour.com',
+        en: 'Hayder@alyafour.com'
       },
       companyInfo: {
         ar: 'ال يافور للمقاولات العامة والنقليات',
         en: 'Al Yafour General Contracting and Transport'
+      },
+      location: {
+        ar: 'شارع المطار القديم - المشرف - W24 01 - أبو ظبي',
+        en: 'OLD Airport Road - Al Mushrif - W24 01 - Abu Dhabi'
       }
     };
     
@@ -560,6 +564,39 @@ BEGIN:VCARD%0AVERSION:3.0%0AFN:Haider Al-Shammari%0ATITLE:CEO%0AORG:Al Yafour Ge
       document.getElementById('phone').textContent = isEnglish ? translations.phone.en : translations.phone.ar;
       document.getElementById('email').textContent = isEnglish ? translations.email.en : translations.email.ar;
       document.getElementById('company-info').textContent = isEnglish ? translations.companyInfo.en : translations.companyInfo.ar;
+      
+      // تحديث العنوان
+      const locationElement = document.querySelector('.info-item:last-child .info-value');
+      locationElement.textContent = isEnglish ? translations.location.en : translations.location.ar;
+    });
+    
+    // إنشاء وتحميل vCard
+    document.getElementById('vcardButton').addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      const vCardData = `BEGIN:VCARD
+VERSION:3.0
+N:al-Shammeriy;Hayder;;;
+FN:Hayder al-Shammeriy
+ORG:Al Yafour General Contracting and Transport
+TITLE:Chief Executive Officer
+TEL;TYPE=WORK,VOICE:+971507528590
+EMAIL;TYPE=WORK:Hayder@alyafour.com
+ADR;TYPE=WORK:;;OLD Airport Road - Al Mushrif - W24 01;Abu Dhabi;;;
+URL:https://www.alyafour.com
+END:VCARD`;
+      
+      // إنشاء ملف vCard للتحميل
+      const blob = new Blob([vCardData], { type: 'text/vcard' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = 'Hayder al-Shammeriy.vcf';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     });
     
     // تأثيرات إضافية عند التمرير
