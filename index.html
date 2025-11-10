@@ -426,7 +426,7 @@
       
       <div class="avatar-container">
         <div class="avatar-bg"></div>
-        <img class="avatar" src="pic.jpg" alt="حيدر الشمري" />
+        <img class="avatar" src="pic.jpg" alt="حيدر الشمري" id="profileImage" />
       </div>
       <h1 id="name">حيدر الشمري</h1>
       <h2 id="title">المدير التنفيذي</h2>
@@ -570,9 +570,29 @@
       locationElement.textContent = isEnglish ? translations.location.en : translations.location.ar;
     });
     
+    // تحويل الصورة إلى Base64
+    function getBase64Image(img) {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      return canvas.toDataURL('image/jpeg').split(',')[1];
+    }
+    
     // إنشاء وتحميل vCard
     document.getElementById('vcardButton').addEventListener('click', function(e) {
       e.preventDefault();
+      
+      const img = document.getElementById('profileImage');
+      let photoBase64 = '';
+      
+      // محاولة الحصول على الصورة كـ Base64
+      try {
+        photoBase64 = getBase64Image(img);
+      } catch (error) {
+        console.log('لا يمكن تحويل الصورة إلى Base64:', error);
+      }
       
       const vCardData = `BEGIN:VCARD
 VERSION:3.0
@@ -584,10 +604,18 @@ TEL;TYPE=WORK,VOICE:+971507528590
 EMAIL;TYPE=WORK:Hayder@alyafour.com
 ADR;TYPE=WORK:;;OLD Airport Road - Al Mushrif - W24 01;Abu Dhabi;;;
 URL:https://www.alyafour.com
+${photoBase64 ? 'PHOTO;ENCODING=B;TYPE=JPEG:' + photoBase64 : ''}
+X-SOCIALPROFILE;TYPE=facebook:https://www.facebook.com/alyafor
+X-SOCIALPROFILE;TYPE=twitter:https://twitter.com
+X-SOCIALPROFILE;TYPE=linkedin:https://www.linkedin.com/company/36594447/admin/dashboard/
+X-SOCIALPROFILE;TYPE=instagram:https://www.instagram.com/al_yafour/
+NOTE:Managing Director at Al Yafour General Contracting and Transport
+BDAY:19850415
+REV:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z
 END:VCARD`;
       
       // إنشاء ملف vCard للتحميل
-      const blob = new Blob([vCardData], { type: 'text/vcard' });
+      const blob = new Blob([vCardData], { type: 'text/vcard;charset=utf-8' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.style.display = 'none';
