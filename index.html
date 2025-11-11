@@ -386,6 +386,32 @@
       animation: slideIn 0.8s ease 0.5s both;
     }
     
+    .save-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    .save-option {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      border-radius: 8px;
+      background: #f8f9fa;
+      color: var(--dark);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 13px;
+      transition: all 0.3s ease;
+      border: 1px solid #e9ecef;
+    }
+    
+    .save-option:hover {
+      background: #e9ecef;
+    }
+    
     @media (max-width: 480px) {
       .card {
         max-width: 100%;
@@ -501,6 +527,11 @@
         </a>
       </div>
       
+      <div class="save-options" id="saveOptions" style="display: none;">
+        <div class="save-option" id="directSave">حفظ مباشر (للأجهزة المدعومة)</div>
+        <div class="save-option" id="downloadVCF">تحميل ملف VCF (لجميع الأجهزة)</div>
+      </div>
+      
       <div class="social-links">
         <a href="https://www.facebook.com/alyafor" class="social-link" target="_blank" data-tooltip="فيسبوك / Facebook">
           <i class="fab fa-facebook-f"></i>
@@ -570,30 +601,25 @@
       locationElement.textContent = isEnglish ? translations.location.en : translations.location.ar;
     });
     
-    // تحويل الصورة إلى Base64
-    function getBase64Image(img) {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-      return canvas.toDataURL('image/jpeg').split(',')[1];
-    }
-    
-    // إنشاء وتحميل vCard
+    // عرض خيارات الحفظ
     document.getElementById('vcardButton').addEventListener('click', function(e) {
       e.preventDefault();
-      
-      const img = document.getElementById('profileImage');
-      let photoBase64 = '';
-      
-      // محاولة الحصول على الصورة كـ Base64
-      try {
-        photoBase64 = getBase64Image(img);
-      } catch (error) {
-        console.log('لا يمكن تحويل الصورة إلى Base64:', error);
-      }
-      
+      const saveOptions = document.getElementById('saveOptions');
+      saveOptions.style.display = saveOptions.style.display === 'none' ? 'flex' : 'none';
+    });
+    
+    // الحفظ المباشر (للأجهزة المدعومة)
+    document.getElementById('directSave').addEventListener('click', function() {
+      createAndSaveVCard(true);
+    });
+    
+    // تحميل ملف VCF (لجميع الأجهزة)
+    document.getElementById('downloadVCF').addEventListener('click', function() {
+      createAndSaveVCard(false);
+    });
+    
+    // إنشاء وتحميل vCard
+    function createAndSaveVCard(isDirectSave) {
       const vCardData = `BEGIN:VCARD
 VERSION:3.0
 N:al-Shammeriy;Hayder;;;
@@ -604,7 +630,6 @@ TEL;TYPE=WORK,VOICE:+971507528590
 EMAIL;TYPE=WORK:Hayder@alyafour.com
 ADR;TYPE=WORK:;;OLD Airport Road - Al Mushrif - W24 01;Abu Dhabi;;;
 URL:https://www.alyafour.com
-${photoBase64 ? 'PHOTO;ENCODING=B;TYPE=JPEG:' + photoBase64 : ''}
 X-SOCIALPROFILE;TYPE=facebook:https://www.facebook.com/alyafor
 X-SOCIALPROFILE;TYPE=twitter:https://twitter.com
 X-SOCIALPROFILE;TYPE=linkedin:https://www.linkedin.com/company/36594447/admin/dashboard/
@@ -614,18 +639,32 @@ BDAY:19850415
 REV:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z
 END:VCARD`;
       
-      // إنشاء ملف vCard للتحميل
-      const blob = new Blob([vCardData], { type: 'text/vcard;charset=utf-8' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = 'Hayder al-Shammeriy.vcf';
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    });
+      if (isDirectSave) {
+        // طريقة الحفظ المباشر (تعمل على معظم أجهزة iOS وبعض أجهزة Android)
+        const blob = new Blob([vCardData], { type: 'text/vcard' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Hayder al-Shammeriy.vcf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        // طريقة تحميل الملف (تعمل على جميع الأجهزة)
+        const encodedData = encodeURIComponent(vCardData);
+        const dataUri = 'data:text/vcard;charset=utf-8,' + encodedData;
+        const a = document.createElement('a');
+        a.href = dataUri;
+        a.download = 'Hayder al-Shammeriy.vcf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+      
+      // إخفاء خيارات الحفظ بعد الاختيار
+      document.getElementById('saveOptions').style.display = 'none';
+    }
     
     // تأثيرات إضافية عند التمرير
     const infoItems = document.querySelectorAll('.info-item');
