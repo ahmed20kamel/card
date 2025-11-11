@@ -386,32 +386,6 @@
       animation: slideIn 0.8s ease 0.5s both;
     }
     
-    .save-options {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 15px;
-    }
-    
-    .save-option {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px;
-      border-radius: 8px;
-      background: #f8f9fa;
-      color: var(--dark);
-      text-decoration: none;
-      font-weight: 500;
-      font-size: 13px;
-      transition: all 0.3s ease;
-      border: 1px solid #e9ecef;
-    }
-    
-    .save-option:hover {
-      background: #e9ecef;
-    }
-    
     @media (max-width: 480px) {
       .card {
         max-width: 100%;
@@ -452,7 +426,7 @@
       
       <div class="avatar-container">
         <div class="avatar-bg"></div>
-        <img class="avatar" src="pic.jpg" alt="حيدر الشمري" id="profileImage" />
+        <img class="avatar" src="pic.jpg" alt="حيدر الشمري" id="profileImage" crossorigin="anonymous" />
       </div>
       <h1 id="name">حيدر الشمري</h1>
       <h2 id="title">المدير التنفيذي</h2>
@@ -527,11 +501,6 @@
         </a>
       </div>
       
-      <div class="save-options" id="saveOptions" style="display: none;">
-        <div class="save-option" id="directSave">حفظ مباشر (للأجهزة المدعومة)</div>
-        <div class="save-option" id="downloadVCF">تحميل ملف VCF (لجميع الأجهزة)</div>
-      </div>
-      
       <div class="social-links">
         <a href="https://www.facebook.com/alyafor" class="social-link" target="_blank" data-tooltip="فيسبوك / Facebook">
           <i class="fab fa-facebook-f"></i>
@@ -601,26 +570,48 @@
       locationElement.textContent = isEnglish ? translations.location.en : translations.location.ar;
     });
     
-    // عرض خيارات الحفظ
-    document.getElementById('vcardButton').addEventListener('click', function(e) {
-      e.preventDefault();
-      const saveOptions = document.getElementById('saveOptions');
-      saveOptions.style.display = saveOptions.style.display === 'none' ? 'flex' : 'none';
-    });
-    
-    // الحفظ المباشر (للأجهزة المدعومة)
-    document.getElementById('directSave').addEventListener('click', function() {
-      createAndSaveVCard(true);
-    });
-    
-    // تحميل ملف VCF (لجميع الأجهزة)
-    document.getElementById('downloadVCF').addEventListener('click', function() {
-      createAndSaveVCard(false);
-    });
+    // تحويل الصورة إلى Base64
+    function imageToBase64(img) {
+      return new Promise((resolve, reject) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // تعيين أبعاد Canvas لتتناسب مع الصورة
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        
+        // رسم الصورة على Canvas
+        ctx.drawImage(img, 0, 0);
+        
+        try {
+          // تحويل إلى Base64
+          const dataURL = canvas.toDataURL('image/jpeg', 0.9);
+          // إزالة البادئة "data:image/jpeg;base64,"
+          const base64 = dataURL.split(',')[1];
+          resolve(base64);
+        } catch (error) {
+          reject(error);
+        }
+      });
+    }
     
     // إنشاء وتحميل vCard
-    function createAndSaveVCard(isDirectSave) {
-      const vCardData = `BEGIN:VCARD
+    document.getElementById('vcardButton').addEventListener('click', async function(e) {
+      e.preventDefault();
+      
+      try {
+        const img = document.getElementById('profileImage');
+        let photoBase64 = '';
+        
+        // محاولة تحويل الصورة إلى Base64
+        try {
+          photoBase64 = await imageToBase64(img);
+        } catch (error) {
+          console.log('لا يمكن تحويل الصورة:', error);
+        }
+        
+        // إنشاء محتوى vCard
+        const vCardData = `BEGIN:VCARD
 VERSION:3.0
 N:al-Shammeriy;Hayder;;;
 FN:Hayder al-Shammeriy
@@ -630,18 +621,16 @@ TEL;TYPE=WORK,VOICE:+971507528590
 EMAIL;TYPE=WORK:Hayder@alyafour.com
 ADR;TYPE=WORK:;;OLD Airport Road - Al Mushrif - W24 01;Abu Dhabi;;;
 URL:https://www.alyafour.com
+${photoBase64 ? 'PHOTO;ENCODING=B;TYPE=JPEG:' + photoBase64 : ''}
 X-SOCIALPROFILE;TYPE=facebook:https://www.facebook.com/alyafor
-X-SOCIALPROFILE;TYPE=twitter:https://twitter.com
-X-SOCIALPROFILE;TYPE=linkedin:https://www.linkedin.com/company/36594447/admin/dashboard/
 X-SOCIALPROFILE;TYPE=instagram:https://www.instagram.com/al_yafour/
+X-SOCIALPROFILE;TYPE=linkedin:https://www.linkedin.com/company/36594447/admin/dashboard/
 NOTE:Managing Director at Al Yafour General Contracting and Transport
-BDAY:19850415
 REV:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z
 END:VCARD`;
-      
-      if (isDirectSave) {
-        // طريقة الحفظ المباشر (تعمل على معظم أجهزة iOS وبعض أجهزة Android)
-        const blob = new Blob([vCardData], { type: 'text/vcard' });
+        
+        // إنشاء ملف vCard للتحميل
+        const blob = new Blob([vCardData], { type: 'text/vcard;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -650,21 +639,12 @@ END:VCARD`;
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-      } else {
-        // طريقة تحميل الملف (تعمل على جميع الأجهزة)
-        const encodedData = encodeURIComponent(vCardData);
-        const dataUri = 'data:text/vcard;charset=utf-8,' + encodedData;
-        const a = document.createElement('a');
-        a.href = dataUri;
-        a.download = 'Hayder al-Shammeriy.vcf';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        
+      } catch (error) {
+        console.error('حدث خطأ أثناء إنشاء جهة الاتصال:', error);
+        alert('حدث خطأ أثناء حفظ جهة الاتصال. يرجى المحاولة مرة أخرى.');
       }
-      
-      // إخفاء خيارات الحفظ بعد الاختيار
-      document.getElementById('saveOptions').style.display = 'none';
-    }
+    });
     
     // تأثيرات إضافية عند التمرير
     const infoItems = document.querySelectorAll('.info-item');
